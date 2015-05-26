@@ -1,0 +1,74 @@
+<!doctype html5>
+<html>
+
+<head>
+<title>JWS verifier</title>
+<script>
+
+function toNormalB64(b64) {
+  var out = b64.replace(/-/, "+").replace(/_/, "/");
+  while (out.length % 4 != 0) { out += "="; }
+  return out;
+}
+
+function toUint8Array(x) {
+  return new Uint8Array([x[i] for (i in x)]);
+}
+
+function webCryptoAlg(alg) {
+  switch (alg) {
+    case "RS256": return { name: "RSASSA-PKCS1-v1_5", hash: "SHA-256" };
+    case "RS384": return { name: "RSASSA-PKCS1-v1_5", hash: "SHA-384" };
+    case "RS512": return { name: "RSASSA-PKCS1-v1_5", hash: "SHA-512" };
+    case "ES256": return { name: "ECDSA", namedCurve: "P-256", hash: "SHA-256" };
+    case "ES384": return { name: "ECDSA", namedCurve: "P-384", hash: "SHA-384" };
+    case "ES512": return { name: "ECDSA", namedCurve: "P-512", hash: "SHA-512" };
+  }
+  return null;
+}
+
+function verifyInner(protected, header, payload, signature) {
+  console.log(">>> verifyInner()");
+  var h = header || JSON.parse(atob(toNormalB64(protected)));
+  var alg = webCryptoAlg(h.alg)
+  var data = toUint8Array(header + "." + payload);
+  var sig = toUint8Array(signature);
+
+  return crypto.subtle.importKey("jwk", h.jwk, alg, true, ["verify"])
+    .then( (k) => crypto.subtle.verify(alg, k, data, sig) )
+    .then( x => { console.log("ok"); console.log(x); })
+    .catch( x => { console.log("fail"); console.log(x); })
+    //.then(x => { document.getElementById("resultOut").innerText = (x)? "OK" : "FAIL"; })
+    //.catch(x => { document.getElementById("resultOut").innerText = "Error: " + x; });
+}
+
+function verify() {
+  console.log(">>> verify()");
+  var jwsIn = document.getElementById("jwsIn").value;
+
+  var result = null;
+  if (jwsIn.match(/[\w_-]+\.[\w_-]+\.[\w_-]+/)) {
+    var [header, payload, signature] = jwsIn.split(/\./);
+    result = verifyInner(header, null, payload, signature);
+  } else {
+    try {
+      var jws = JSON.parse(jwsIn);
+
+      result = verifyInner(jws.protected, jws.header, jws.payload, jws.signature);
+    } catch (e) {
+      console.log(e);
+      return;
+    }
+  }
+}
+
+</script>
+</head>
+
+<body>
+<textarea id="jwsIn" onkeyup="verify();" rows="20" cols="90"></textarea>
+<br/>
+<span id="resultOut">Enter JWS</span>
+</body>
+
+</html>
