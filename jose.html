@@ -13,6 +13,21 @@ eyJhbGciOiJSUzI1NiIsImp3ayI6eyJrdHkiOiJSU0EiLCJuIjoibUNVZkpzSGF3Wll5SkVhS3FySHNK
   "signature": "MeQFUWWQdFxbfitTGOBLePqWC7NtOl5PY6ohq8oXGGl_2Z9OkXFPGYjpCrf8Tvlw0PKMdEQV11_DboPTC9WrV7BX6u2RhV-0TLz1zTCrfwaXyQPcuCCpKeabZm5CjMt-BteNVynt2Wl_88wRGW4pwv8iarWp5e8boUFcgkMCmlyq6UPsT6gg4LACRddcNMZZCpQT_xiKgLu9XqoZDVohZHiY-4wrNtNpmsrQAgiqg8af1wEAos8S7QPv4cIQfM0DXDnEQbpRYRb0jTQU1VBx6-QkDAHLLfrRWWQwGOXJ7bM3s8dodMZ9r-oJq029yeHAQMn_CbB0hTWS29ymTyMxiA"
 }
 
+This case should also verify:
+
+{
+  "header": {
+    "alg": "RS256",
+    "jwk": {
+      "e": "AQAB",
+      "kty": "RSA",
+      "n": "tSwgy3ORGvc7YJI9B2qqkelZRUC6F1S5NwXFvM4w5-M0TsxbFsH5UH6adigV0jzsDJ5imAechcSoOhAh9POceCbPN1sTNwLpNbOLiQQ7RD5mY_pSUHWXNmS9R4NZ3t2fQAzPeW7jOfF0LKuJRGkekx6tXP1uSnNibgpJULNc4208dgBaCHo3mvaE2HV2GmVl1yxwWX5QZZkGQGjNDZYnjFfa2DKVvFs0QbAk21ROm594kAxlRlMMrvqlf24Eq4ERO0ptzpZgm_3j_e4hGRD39gJS7kAzK-j2cacFQ5Qi2Y6wZI2p-FCq_wiYsfEAIkATPBiLKl_6d_Jfcvs_impcXQ"
+    }
+  },
+  "payload": "Zm9vCg",
+  "signature": "hRt2eYqBd_MyMRNIh8PEIACoFtmBi7BHTLBaAhpSU6zyDAFdEBaX7us4VB9Vo1afOL03Q8iuoRA0AT4akdV_mQTAQ_jhTcVOAeXPr0tB8b8Q11UPQ0tXJYmU4spAW2SapJIvO50ntUaqU05kZd0qw8-noH1Lja-aNnU-tQII4iYVvlTiRJ5g8_CADsvJqOk6FcHuo2mG643TRnhkAxUtazvHyIHeXMxydMMSrpwUwzMtln4ZJYBNx4QGEq6OhpAD_VSp-w8Lq5HOwGQoNs0bPxH1SGrArt67LFQBfjlVr94E1sn26p4vigXm83nJdNhWAMHHE9iV67xN-r29LT-FjA"
+}
+
 -->
 
 <head>
@@ -62,13 +77,14 @@ function verify() {
     }
   }
 
-  var h = header || JSON.parse(atob(toNormalB64(protected)));
-  var alg = webCryptoAlg(h.alg)
+  protected = protected || "";
+  header = header || JSON.parse(atob(toNormalB64(protected)));
+  var alg = webCryptoAlg(header.alg)
   var data = toUint8Array(protected + "." + payload);
   var sig = toUint8Array(atob(toNormalB64(signature)));
 
-  crypto.subtle.importKey("jwk", h.jwk, alg, true, ["verify"])
-    .then( (k) => crypto.subtle.verify(alg, k, sig, data) )
+  crypto.subtle.importKey("jwk", header.jwk, alg, true, ["verify"])
+    .then(k => crypto.subtle.verify(alg, k, sig, data) )
     .then(x => { document.getElementById("resultOut").innerHTML = (x)? "Valid" : "Invalid"; })
     .catch(x => { document.getElementById("resultOut").innerHTML = "Error: " + x; });
 }
