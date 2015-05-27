@@ -3,7 +3,7 @@ import org.jose4j.jws.*;
 import java.security.*;
 
 // javac -classpath jose4j-0.4.2.jar JwsTest.java
-// java -classpath jose4j-0.4.2.jar:. JwsTest
+// java -classpath jose4j-0.4.2.jar:commons-logging-1.2.jar:. JwsTest
 
 class JwsTest {
   public static void main(String[] args) {
